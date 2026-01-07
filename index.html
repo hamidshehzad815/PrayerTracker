@@ -312,14 +312,67 @@
           grid-template-columns: 1fr;
         }
 
+        .stats-container {
+          grid-template-columns: 1fr;
+        }
+
+        .calendar-view {
+          padding: 15px;
+        }
+
         .calendar-grid {
           grid-template-columns: repeat(7, 1fr);
-          gap: 5px;
+          gap: 3px;
         }
 
         .calendar-day {
-          font-size: 0.8em;
-          padding: 5px;
+          font-size: 0.7em;
+          padding: 3px;
+          min-height: 50px;
+        }
+
+        .day-number {
+          font-size: 1em;
+          margin-bottom: 3px;
+        }
+
+        .day-dots {
+          gap: 1px;
+        }
+
+        .dot {
+          width: 4px;
+          height: 4px;
+        }
+
+        .month-selector {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .month-selector button {
+          width: 100%;
+          padding: 12px;
+        }
+
+        .month-selector h3 {
+          font-size: 1.2em;
+          order: -1;
+        }
+
+        .date-selector {
+          flex-direction: column;
+          padding: 15px;
+        }
+
+        .date-selector button,
+        .date-selector input {
+          width: 100%;
+        }
+
+        .current-date {
+          font-size: 1em;
+          text-align: center;
         }
       }
     </style>
@@ -749,7 +802,8 @@
           const header = document.createElement("div");
           header.style.fontWeight = "bold";
           header.style.textAlign = "center";
-          header.style.padding = "10px";
+          header.style.padding = "5px";
+          header.style.fontSize = "0.9em";
           header.textContent = day;
           grid.appendChild(header);
         });
