@@ -194,6 +194,7 @@
         border-radius: 15px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         margin-top: 30px;
+        overflow: hidden;
       }
 
       .calendar-grid {
@@ -201,6 +202,7 @@
         grid-template-columns: repeat(7, 1fr);
         gap: 10px;
         margin-top: 20px;
+        width: 100%;
       }
 
       .calendar-day {
@@ -212,8 +214,10 @@
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
-        padding: 10px;
-        font-size: 0.9em;
+        padding: 5px 2px;
+        font-size: 0.85em;
+        min-width: 0;
+        overflow: hidden;
       }
 
       .calendar-day:hover {
@@ -317,47 +321,58 @@
         }
 
         .calendar-view {
-          padding: 15px;
+          padding: 10px;
+          margin-top: 20px;
         }
 
         .calendar-grid {
-          grid-template-columns: repeat(7, 1fr);
-          gap: 3px;
+          gap: 2px;
+          margin-top: 15px;
         }
 
         .calendar-day {
-          font-size: 0.7em;
-          padding: 3px;
-          min-height: 50px;
+          font-size: 0.65em;
+          padding: 2px 1px;
+          border-radius: 5px;
+          min-height: 0;
+        }
+
+        .calendar-day:hover {
+          transform: none;
         }
 
         .day-number {
-          font-size: 1em;
-          margin-bottom: 3px;
+          font-size: 1.1em;
+          margin-bottom: 2px;
         }
 
         .day-dots {
           gap: 1px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
 
         .dot {
-          width: 4px;
-          height: 4px;
+          width: 3px;
+          height: 3px;
         }
 
         .month-selector {
-          flex-direction: column;
+          flex-direction: row;
           gap: 10px;
+          margin-bottom: 15px;
         }
 
         .month-selector button {
-          width: 100%;
-          padding: 12px;
+          padding: 8px 12px;
+          font-size: 0.9em;
+          flex-shrink: 0;
         }
 
         .month-selector h3 {
-          font-size: 1.2em;
-          order: -1;
+          font-size: 1.1em;
+          flex-grow: 1;
+          text-align: center;
         }
 
         .date-selector {
@@ -373,6 +388,43 @@
         .current-date {
           font-size: 1em;
           text-align: center;
+        }
+
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          max-width: 100%;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .calendar-day {
+          font-size: 0.6em;
+          padding: 1px;
+        }
+
+        .day-number {
+          font-size: 1em;
+        }
+
+        .dot {
+          width: 2px;
+          height: 2px;
+        }
+
+        .calendar-grid {
+          gap: 1px;
+        }
+
+        .month-selector h3 {
+          font-size: 1em;
+        }
+
+        .month-selector button {
+          padding: 6px 10px;
+          font-size: 0.85em;
         }
       }
     </style>
@@ -802,8 +854,9 @@
           const header = document.createElement("div");
           header.style.fontWeight = "bold";
           header.style.textAlign = "center";
-          header.style.padding = "5px";
-          header.style.fontSize = "0.9em";
+          header.style.padding = "3px";
+          header.style.fontSize = "0.75em";
+          header.style.color = "#667eea";
           header.textContent = day;
           grid.appendChild(header);
         });
