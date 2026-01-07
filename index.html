@@ -195,14 +195,16 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         margin-top: 30px;
         overflow: hidden;
+        box-sizing: border-box;
       }
 
       .calendar-grid {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 10px;
         margin-top: 20px;
         width: 100%;
+        box-sizing: border-box;
       }
 
       .calendar-day {
@@ -211,13 +213,15 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
         padding: 5px 2px;
         font-size: 0.85em;
         min-width: 0;
+        max-width: 100%;
         overflow: hidden;
+        box-sizing: border-box;
       }
 
       .calendar-day:hover {
@@ -321,20 +325,19 @@
         }
 
         .calendar-view {
-          padding: 10px;
+          padding: 8px;
           margin-top: 20px;
         }
 
         .calendar-grid {
-          gap: 2px;
-          margin-top: 15px;
+          gap: 3px;
+          margin-top: 10px;
         }
 
         .calendar-day {
-          font-size: 0.65em;
-          padding: 2px 1px;
-          border-radius: 5px;
-          min-height: 0;
+          font-size: 0.7em;
+          padding: 4px 2px;
+          border-radius: 6px;
         }
 
         .calendar-day:hover {
@@ -342,7 +345,7 @@
         }
 
         .day-number {
-          font-size: 1.1em;
+          font-size: 1em;
           margin-bottom: 2px;
         }
 
@@ -350,6 +353,7 @@
           gap: 1px;
           flex-wrap: wrap;
           justify-content: center;
+          max-width: 100%;
         }
 
         .dot {
@@ -359,18 +363,18 @@
 
         .month-selector {
           flex-direction: row;
-          gap: 10px;
-          margin-bottom: 15px;
+          gap: 8px;
+          margin-bottom: 12px;
         }
 
         .month-selector button {
-          padding: 8px 12px;
+          padding: 8px 15px;
           font-size: 0.9em;
           flex-shrink: 0;
         }
 
         .month-selector h3 {
-          font-size: 1.1em;
+          font-size: 1em;
           flex-grow: 1;
           text-align: center;
         }
@@ -378,6 +382,7 @@
         .date-selector {
           flex-direction: column;
           padding: 15px;
+          gap: 10px;
         }
 
         .date-selector button,
@@ -386,7 +391,7 @@
         }
 
         .current-date {
-          font-size: 1em;
+          font-size: 0.95em;
           text-align: center;
         }
 
@@ -396,35 +401,69 @@
 
         .container {
           max-width: 100%;
+          padding: 0;
+        }
+
+        .stat-card {
+          padding: 20px;
         }
       }
 
-      @media (max-width: 380px) {
+      @media (max-width: 400px) {
+        .calendar-view {
+          padding: 5px;
+        }
+
+        .calendar-grid {
+          gap: 2px;
+        }
+
         .calendar-day {
-          font-size: 0.6em;
-          padding: 1px;
+          font-size: 0.65em;
+          padding: 3px 1px;
+          border-radius: 4px;
         }
 
         .day-number {
-          font-size: 1em;
+          font-size: 0.95em;
         }
 
         .dot {
-          width: 2px;
-          height: 2px;
+          width: 2.5px;
+          height: 2.5px;
+        }
+
+        .month-selector {
+          gap: 5px;
+        }
+
+        .month-selector h3 {
+          font-size: 0.95em;
+        }
+
+        .month-selector button {
+          padding: 6px 10px;
+          font-size: 0.85em;
+        }
+      }
+
+      @media (max-width: 350px) {
+        .calendar-view {
+          padding: 3px;
         }
 
         .calendar-grid {
           gap: 1px;
         }
 
-        .month-selector h3 {
-          font-size: 1em;
+        .calendar-day {
+          font-size: 0.6em;
+          padding: 2px 1px;
         }
 
-        .month-selector button {
-          padding: 6px 10px;
-          font-size: 0.85em;
+        .dot {
+          width: 2px;
+          height: 2px;
         }
       }
     </style>
@@ -436,13 +475,7 @@
         <p>Track your daily prayers with ease</p>
         <div>
           <select id="yearSelector" class="year-selector">
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-            <option value="2029">2029</option>
-            <option value="2030">2030</option>
+            <!-- Years will be populated dynamically -->
           </select>
         </div>
       </header>
@@ -741,7 +774,13 @@
 
       function updateDateDisplay() {
         const dateInput = document.getElementById("dateInput");
-        const dateStr = currentDate.toISOString().split("T")[0];
+
+        // Format date correctly for input (YYYY-MM-DD in local timezone)
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+        const day = String(currentDate.getDate()).padStart(2, "0");
+        const dateStr = `${year}-${month}-${day}`;
+
         dateInput.value = dateStr;
 
         const options = {
@@ -792,7 +831,12 @@
         if (!isCurrentYear()) return;
 
         const dateInput = document.getElementById("dateInput");
-        const selectedDate = new Date(dateInput.value + "T00:00:00");
+        const inputValue = dateInput.value; // YYYY-MM-DD format
+
+        if (!inputValue) return;
+
+        const [year, month, day] = inputValue.split("-").map(Number);
+        const selectedDate = new Date(year, month - 1, day);
 
         if (selectedDate.getFullYear() === selectedYear) {
           currentDate = selectedDate;
@@ -969,7 +1013,22 @@
         .getElementById("dateInput")
         .addEventListener("change", handleDateChange);
 
+      // Populate year selector dynamically
+      function populateYearSelector() {
+        const yearSelector = document.getElementById("yearSelector");
+        const currentYear = new Date().getFullYear();
+
+        // Show 5 years before and 5 years after current year
+        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+          const option = document.createElement("option");
+          option.value = year;
+          option.textContent = year;
+          yearSelector.appendChild(option);
+        }
+      }
+
       // Initialize
+      populateYearSelector();
       const today = new Date();
       selectedYear = today.getFullYear();
       currentDate = new Date(selectedYear, today.getMonth(), today.getDate());
