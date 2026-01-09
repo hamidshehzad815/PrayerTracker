@@ -1,5 +1,5 @@
-const CACHE_NAME = "prayer-tracker-v1";
-const ASSETS_TO_CACHE = ["./", "./index.html", "./manifest.json", "./icon.png"];
+const CACHE_NAME = "prayer-tracker-v2";
+const ASSETS_TO_CACHE = ["./", "./index.html", "./manifest.json", "./logo.png"];
 
 // Install Service Worker and Cache Files
 self.addEventListener("install", (event) => {

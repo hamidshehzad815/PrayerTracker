@@ -10,7 +10,7 @@
   "description": "Track your daily prayers with ease",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
