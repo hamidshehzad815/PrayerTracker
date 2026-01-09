@@ -724,9 +724,9 @@
         const data = await loadPrayerData(currentDate);
         data[index] = !data[index];
         await savePrayerData(currentDate, data);
-        renderPrayers();
-        updateStats();
-        renderCalendar();
+        await renderPrayers();
+        await updateStats();
+        await renderCalendar();
       }
 
       async function renderPrayers() {
@@ -864,10 +864,10 @@
           "yearlyCount"
         ).textContent = `${yearlyCompleted} / ${yearlyTotal} prayers`;
 
-        updateStreak();
+        await updateStreak();
       }
 
-      function updateStreak() {
+      async function updateStreak() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -875,7 +875,7 @@
         let checkDate = new Date(today);
 
         // Check today first
-        const todayData = loadPrayerData(checkDate);
+        const todayData = await loadPrayerData(checkDate);
         const todayCompleted = todayData.filter((p) => p).length;
 
         // If today has all 5 prayers, count it
@@ -885,7 +885,7 @@
           checkDate.setDate(checkDate.getDate() - 1);
 
           while (true) {
-            const data = loadPrayerData(checkDate);
+            const data = await loadPrayerData(checkDate);
             const completed = data.filter((p) => p).length;
 
             if (completed === 5) {
@@ -900,7 +900,7 @@
         } else {
           // Today is not complete, check if yesterday was complete
           checkDate.setDate(checkDate.getDate() - 1);
-          const yesterdayData = loadPrayerData(checkDate);
+          const yesterdayData = await loadPrayerData(checkDate);
           const yesterdayCompleted = yesterdayData.filter((p) => p).length;
 
           if (yesterdayCompleted === 5) {
@@ -909,7 +909,7 @@
             checkDate.setDate(checkDate.getDate() - 1);
 
             while (true) {
-              const data = loadPrayerData(checkDate);
+              const data = await loadPrayerData(checkDate);
               const completed = data.filter((p) => p).length;
 
               if (completed === 5) {
@@ -950,7 +950,7 @@
           currentDate.toLocaleDateString("en-US", options);
       }
 
-      function changeDate(days) {
+      async function changeDate(days) {
         if (!isCurrentYear()) return;
 
         currentDate.setDate(currentDate.getDate() + days);
@@ -962,12 +962,12 @@
         }
 
         updateDateDisplay();
-        renderPrayers();
-        updateStats();
-        renderCalendar();
+        await renderPrayers();
+        await updateStats();
+        await renderCalendar();
       }
 
-      function goToToday() {
+      async function goToToday() {
         if (!isCurrentYear()) return;
 
         const today = new Date();
@@ -979,9 +979,9 @@
 
         calendarMonth = new Date(currentDate);
         updateDateDisplay();
-        renderPrayers();
-        updateStats();
-        renderCalendar();
+        await renderPrayers();
+        await updateStats();
+        await renderCalendar();
       }
 
       async function handleDateChange() {
@@ -1103,12 +1103,12 @@
                 `;
 
           if (isCurrentYear()) {
-            dayDiv.onclick = () => {
+            dayDiv.onclick = async () => {
               currentDate = new Date(date);
               updateDateDisplay();
-              renderPrayers();
-              updateStats();
-              renderCalendar();
+              await renderPrayers();
+              await updateStats();
+              await renderCalendar();
             };
           } else {
             dayDiv.style.cursor = "default";
