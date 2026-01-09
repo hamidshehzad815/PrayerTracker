@@ -590,21 +590,110 @@
         return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
       }
 
+      // IndexedDB Setup - More persistent than localStorage
+      let db;
+      const DB_NAME = "PrayerTrackerDB";
+      const DB_VERSION = 1;
+      const STORE_NAME = "prayers";
+
+      // Initialize IndexedDB
+      function initDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            db = request.result;
+            resolve(db);
+          };
+
+          request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME, { keyPath: "key" });
+            }
+          };
+        });
+      }
+
+      // Request persistent storage to prevent data deletion
+      async function requestPersistentStorage() {
+        if (navigator.storage && navigator.storage.persist) {
+          const isPersisted = await navigator.storage.persist();
+          console.log(
+            `Persistent storage granted: ${isPersisted ? "Yes" : "No"}`
+          );
+          if (isPersisted) {
+            showNotification("Data will be stored permanently! ✅");
+          }
+        }
+      }
+
+      function showNotification(message) {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #38ef7d;
+          color: white;
+          padding: 15px 30px;
+          border-radius: 10px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          z-index: 1000;
+          font-weight: bold;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+      }
+
       function getStorageKey(date) {
         return `prayers_${date.getFullYear()}_${
           date.getMonth() + 1
         }_${date.getDate()}`;
       }
 
-      function loadPrayerData(date) {
-        const key = getStorageKey(date);
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : [false, false, false, false, false];
+      async function loadPrayerData(date) {
+        if (!db) await initDB();
+        
+        return new Promise((resolve) => {
+          const key = getStorageKey(date);
+          const transaction = db.transaction([STORE_NAME], "readonly");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.get(key);
+
+          request.onsuccess = () => {
+            if (request.result) {
+              resolve(request.result.data);
+            } else {
+              resolve([false, false, false, false, false]);
+            }
+          };
+
+          request.onerror = () => {
+            console.error("Error loading data:", request.error);
+            resolve([false, false, false, false, false]);
+          };
+        });
       }
 
-      function savePrayerData(date, data) {
-        const key = getStorageKey(date);
-        localStorage.setItem(key, JSON.stringify(data));
+      async function savePrayerData(date, data) {
+        if (!db) await initDB();
+        
+        return new Promise((resolve) => {
+          const key = getStorageKey(date);
+          const transaction = db.transaction([STORE_NAME], "readwrite");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.put({ key: key, data: data });
+
+          request.onsuccess = () => resolve();
+          request.onerror = () => {
+            console.error("Error saving data:", request.error);
+            resolve();
+          };
+        });
       }
 
       function isCurrentYear() {
@@ -612,19 +701,19 @@
         return selectedYear === today.getFullYear();
       }
 
-      function togglePrayer(index) {
+      async function togglePrayer(index) {
         if (!isCurrentYear()) return; // Prevent editing if not current year
 
-        const data = loadPrayerData(currentDate);
+        const data = await loadPrayerData(currentDate);
         data[index] = !data[index];
-        savePrayerData(currentDate, data);
+        await savePrayerData(currentDate, data);
         renderPrayers();
         updateStats();
         renderCalendar();
       }
 
-      function renderPrayers() {
-        const data = loadPrayerData(currentDate);
+      async function renderPrayers() {
+        const data = await loadPrayerData(currentDate);
         const grid = document.getElementById("prayerGrid");
         grid.innerHTML = "";
 
@@ -657,9 +746,9 @@
         });
       }
 
-      function updateStats() {
+      async function updateStats() {
         // Daily stats
-        const dailyData = loadPrayerData(currentDate);
+        const dailyData = await loadPrayerData(currentDate);
         const dailyCompleted = dailyData.filter((p) => p).length;
         const dailyPercent = Math.round((dailyCompleted / 5) * 100);
         document.getElementById("dailyProgress").textContent =
@@ -687,7 +776,7 @@
         for (let i = 0; i < daysPassed; i++) {
           const date = new Date(selectedYear, 0, 1);
           date.setDate(date.getDate() + i);
-          const data = loadPrayerData(date);
+          const data = await loadPrayerData(date);
           tillNowCompleted += data.filter((p) => p).length;
         }
 
@@ -721,7 +810,7 @@
 
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(year, month, day);
-          const data = loadPrayerData(date);
+          const data = await loadPrayerData(date);
           monthlyCompleted += data.filter((p) => p).length;
         }
 
@@ -745,7 +834,7 @@
           const daysInMonth = new Date(selectedYear, month + 1, 0).getDate();
           for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(selectedYear, month, day);
-            const data = loadPrayerData(date);
+            const data = await loadPrayerData(date);
             yearlyCompleted += data.filter((p) => p).length;
           }
         }
@@ -878,7 +967,7 @@
         renderCalendar();
       }
 
-      function handleDateChange() {
+      async function handleDateChange() {
         if (!isCurrentYear()) return;
 
         const dateInput = document.getElementById("dateInput");
@@ -893,16 +982,16 @@
           currentDate = selectedDate;
           calendarMonth = new Date(currentDate);
           updateDateDisplay();
-          renderPrayers();
-          updateStats();
-          renderCalendar();
+          await renderPrayers();
+          await updateStats();
+          await renderCalendar();
         } else {
           alert(`Please select a date in ${selectedYear}`);
           updateDateDisplay();
         }
       }
 
-      function changeMonth(direction) {
+      async function changeMonth(direction) {
         if (!isCurrentYear()) return;
 
         calendarMonth.setMonth(calendarMonth.getMonth() + direction);
@@ -913,10 +1002,10 @@
           calendarMonth = new Date(selectedYear, 0, 1);
         }
 
-        renderCalendar();
+        await renderCalendar();
       }
 
-      function renderCalendar() {
+      async function renderCalendar() {
         const year = calendarMonth.getFullYear();
         const month = calendarMonth.getMonth();
         const monthNames = [
@@ -966,7 +1055,7 @@
           const dayDiv = document.createElement("div");
           dayDiv.className = "calendar-day";
 
-          const data = loadPrayerData(date);
+          const data = await loadPrayerData(date);
           const completed = data.filter((p) => p).length;
 
           if (date.toDateString() === today.toDateString()) {
@@ -1012,7 +1101,7 @@
         }
       }
 
-      function changeYear() {
+      async function changeYear() {
         selectedYear = parseInt(document.getElementById("yearSelector").value);
 
         currentDate = new Date(selectedYear, 0, 1);
@@ -1048,11 +1137,11 @@
         }
 
         updateDateDisplay();
-        renderPrayers();
-        updateStats();
+        await renderPrayers();
+        await updateStats();
 
         if (isCurrentYear()) {
-          renderCalendar();
+          await renderCalendar();
         }
       }
 
@@ -1079,21 +1168,29 @@
       }
 
       // Initialize
-      populateYearSelector();
-      const today = new Date();
-      selectedYear = today.getFullYear();
-      currentDate = new Date(selectedYear, today.getMonth(), today.getDate());
-      calendarMonth = new Date(currentDate);
+      async function init() {
+        await initDB();
+        await requestPersistentStorage();
+        
+        populateYearSelector();
+        const today = new Date();
+        selectedYear = today.getFullYear();
+        currentDate = new Date(selectedYear, today.getMonth(), today.getDate());
+        calendarMonth = new Date(currentDate);
 
-      document.getElementById("yearSelector").value = selectedYear;
-      document.getElementById(
-        "mainTitle"
-      ).textContent = `🕌 Prayer Tracker ${selectedYear}`;
+        document.getElementById("yearSelector").value = selectedYear;
+        document.getElementById(
+          "mainTitle"
+        ).textContent = `🕌 Prayer Tracker ${selectedYear}`;
 
-      updateDateDisplay();
-      renderPrayers();
-      updateStats();
-      renderCalendar();
+        updateDateDisplay();
+        await renderPrayers();
+        await updateStats();
+        await renderCalendar();
+      }
+
+      // Start the app
+      init();
     </script>
   </body>
 </html>
