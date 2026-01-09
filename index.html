@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prayer Tracker</title>
+    <link rel="manifest" href="manifest.json" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .year-selector {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 2px solid white;
+        background: white;
+        color: #667eea;
+        font-size: 1.1em;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 15px;
+      }
+
+      .date-selector {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .date-selector button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .date-selector button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .date-selector input {
+        padding: 10px 15px;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        font-size: 1em;
+        outline: none;
+      }
+
+      .current-date {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .prayer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .prayer-card {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+      }
+
+      .prayer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .prayer-card.completed {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+      }
+
+      .prayer-name {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .prayer-icon {
+        font-size: 1.8em;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.1em;
+      }
+
+      .custom-checkbox {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        accent-color: #667eea;
+      }
+
+      .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #667eea;
+      }
+
+      .stat-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #764ba2;
+        margin-bottom: 10px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+        transition: width 0.5s ease;
+        border-radius: 10px;
+      }
+
+      .calendar-view {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 5px 2px;
+        font-size: 0.85em;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .calendar-day:hover {
+        transform: scale(1.05);
+      }
+
+      .calendar-day.today {
+        border: 3px solid #667eea;
+        font-weight: bold;
+      }
+
+      .calendar-day.selected {
+        background: #667eea;
+        color: white;
+      }
+
+      .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .day-dots {
+        display: flex;
+        gap: 2px;
+      }
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #ccc;
+      }
+
+      .dot.completed {
+        background: #38ef7d;
+      }
+
+      .month-selector {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .month-selector button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+      }
+
+      .month-selector h3 {
+        color: #667eea;
+        font-size: 1.5em;
+      }
+
+      .streak-indicator {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .streak-number {
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .read-only-message {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #667eea;
+        font-weight: bold;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        font-size: 1.2em;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 1.8em;
+        }
+
+        .prayer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-container {
+          grid-template-columns: 1fr;
+        }
+
+        .calendar-view {
+          padding: 8px;
+          margin-top: 20px;
+        }
+
+        .calendar-grid {
+          gap: 3px;
+          margin-top: 10px;
+        }
+
+        .calendar-day {
+          font-size: 0.7em;
+          padding: 4px 2px;
+          border-radius: 6px;
+        }
+
+        .calendar-day:hover {
+          transform: none;
+        }
+
+        .day-number {
+          font-size: 1em;
+          margin-bottom: 2px;
+        }
+
+        .day-dots {
+          gap: 1px;
+          flex-wrap: wrap;
+          justify-content: center;
+          max-width: 100%;
+        }
+
+        .dot {
+          width: 3px;
+          height: 3px;
+        }
+
+        .month-selector {
+          flex-direction: row;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .month-selector button {
+          padding: 8px 15px;
+          font-size: 0.9em;
+          flex-shrink: 0;
+        }
+
+        .month-selector h3 {
+          font-size: 1em;
+          flex-grow: 1;
+          text-align: center;
+        }
+
+        .date-selector {
+          flex-direction: column;
+          padding: 15px;
+          gap: 10px;
+        }
+
+        .date-selector button,
+        .date-selector input {
+          width: 100%;
+        }
+
+        .current-date {
+          font-size: 0.95em;
+          text-align: center;
+        }
+
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          max-width: 100%;
+          padding: 0;
+        }
+
+        .stat-card {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 400px) {
+        .calendar-view {
+          padding: 5px;
+        }
+
+        .calendar-grid {
+          gap: 2px;
+        }
+
+        .calendar-day {
+          font-size: 0.65em;
+          padding: 3px 1px;
+          border-radius: 4px;
+        }
+
+        .day-number {
+          font-size: 0.95em;
+        }
+
+        .dot {
+          width: 2.5px;
+          height: 2.5px;
+        }
+
+        .month-selector {
+          gap: 5px;
+        }
+
+        .month-selector h3 {
+          font-size: 0.95em;
+        }
+
+        .month-selector button {
+          padding: 6px 10px;
+          font-size: 0.85em;
+        }
+      }
+
+      @media (max-width: 350px) {
+        .calendar-view {
+          padding: 3px;
+        }
+
+        .calendar-grid {
+          gap: 1px;
+        }
+
+        .calendar-day {
+          font-size: 0.6em;
+          padding: 2px 1px;
+        }
+
+        .dot {
+          width: 2px;
+          height: 2px;
+        }
+      }
+    </style>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .then((reg) => console.log("Service Worker registered!"))
+            .catch((err) => console.log("Service Worker failed:", err));
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1 id="mainTitle">🕌 Prayer Tracker 2026</h1>
+        <p>Track your daily prayers with ease</p>
+        <div>
+          <select id="yearSelector" class="year-selector">
+            <!-- Years will be populated dynamically -->
+          </select>
+        </div>
+      </header>
+
+      <div class="streak-indicator">
+        <div>Current Streak</div>
+        <div class="streak-number" id="streakNumber">0 days</div>
+      </div>
+
+      <div id="readOnlyMessage" class="read-only-message hidden">
+        📊 Viewing Year Statistics - Read Only Mode
+      </div>
+
+      <div class="date-selector" id="dateSelector">
+        <button onclick="changeDate(-1)">← Previous Day</button>
+        <input type="date" id="dateInput" />
+        <div class="current-date" id="currentDateDisplay"></div>
+        <button onclick="changeDate(1)">Next Day →</button>
+        <button onclick="goToToday()">Today</button>
+      </div>
+
+      <div class="prayer-grid" id="prayerGrid"></div>
+
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-title">Daily Progress</div>
+          <div class="stat-value" id="dailyProgress">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="dailyBar"></div>
+          </div>
+          <div style="margin-top: 10px; color: #666" id="dailyCount">
+            0 / 5 prayers
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Progress Till Now</div>
+          <div class="stat-value" id="tillNowProgress">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="tillNowBar"></div>
+          </div>
+          <div style="margin-top: 10px; color: #666" id="tillNowCount">
+            0 / 0 prayers
+          </div>
+          <div
+            style="margin-top: 5px; font-size: 0.9em; color: #999"
+            id="tillNowSubtitle"
+          >
+            Since Jan 1
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Monthly Progress</div>
+          <div class="stat-value" id="monthlyProgress">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="monthlyBar"></div>
+          </div>
+          <div style="margin-top: 10px; color: #666" id="monthlyCount">
+            0 / 0 prayers
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Yearly Progress</div>
+          <div class="stat-value" id="yearlyProgress">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="yearlyBar"></div>
+          </div>
+          <div style="margin-top: 10px; color: #666" id="yearlyCount">
+            0 / 1825 prayers
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-view" id="calendarView">
+        <div class="month-selector">
+          <button onclick="changeMonth(-1)">← Previous</button>
+          <h3 id="monthTitle"></h3>
+          <button onclick="changeMonth(1)">Next →</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+    </div>
+
+    <script>
+      const prayers = [
+        { name: "Fajr", icon: "🌅" },
+        { name: "Dhuhr", icon: "☀️" },
+        { name: "Asr", icon: "🌤️" },
+        { name: "Maghrib", icon: "🌆" },
+        { name: "Isha", icon: "🌙" },
+      ];
+
+      let currentDate = new Date();
+      let calendarMonth = new Date();
+      let selectedYear = new Date().getFullYear();
+
+      function isLeapYear(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      }
+
+      function getStorageKey(date) {
+        return `prayers_${date.getFullYear()}_${
+          date.getMonth() + 1
+        }_${date.getDate()}`;
+      }
+
+      function loadPrayerData(date) {
+        const key = getStorageKey(date);
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [false, false, false, false, false];
+      }
+
+      function savePrayerData(date, data) {
+        const key = getStorageKey(date);
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+
+      function isCurrentYear() {
+        const today = new Date();
+        return selectedYear === today.getFullYear();
+      }
+
+      function togglePrayer(index) {
+        if (!isCurrentYear()) return; // Prevent editing if not current year
+
+        const data = loadPrayerData(currentDate);
+        data[index] = !data[index];
+        savePrayerData(currentDate, data);
+        renderPrayers();
+        updateStats();
+        renderCalendar();
+      }
+
+      function renderPrayers() {
+        const data = loadPrayerData(currentDate);
+        const grid = document.getElementById("prayerGrid");
+        grid.innerHTML = "";
+
+        prayers.forEach((prayer, index) => {
+          const card = document.createElement("div");
+          card.className = `prayer-card ${data[index] ? "completed" : ""}`;
+
+          if (isCurrentYear()) {
+            card.onclick = () => togglePrayer(index);
+          } else {
+            card.style.cursor = "default";
+          }
+
+          card.innerHTML = `
+                    <div class="prayer-name">
+                        <span class="prayer-icon">${prayer.icon}</span>
+                        <span>${prayer.name}</span>
+                    </div>
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="custom-checkbox" ${
+                          data[index] ? "checked" : ""
+                        } disabled>
+                        <span>${
+                          data[index] ? "Completed" : "Not completed"
+                        }</span>
+                    </div>
+                `;
+
+          grid.appendChild(card);
+        });
+      }
+
+      function updateStats() {
+        // Daily stats
+        const dailyData = loadPrayerData(currentDate);
+        const dailyCompleted = dailyData.filter((p) => p).length;
+        const dailyPercent = Math.round((dailyCompleted / 5) * 100);
+        document.getElementById("dailyProgress").textContent =
+          dailyPercent + "%";
+        document.getElementById("dailyBar").style.width = dailyPercent + "%";
+        document.getElementById(
+          "dailyCount"
+        ).textContent = `${dailyCompleted} / 5 prayers`;
+
+        // Progress Till Now
+        const today = new Date();
+        const startOfYear = new Date(selectedYear, 0, 1);
+        let tillNowCompleted = 0;
+        let daysPassed = 0;
+
+        if (today.getFullYear() === selectedYear) {
+          const diffTime = today - startOfYear;
+          daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        } else if (today.getFullYear() > selectedYear) {
+          daysPassed = isLeapYear(selectedYear) ? 366 : 365;
+        }
+
+        const tillNowTotal = daysPassed * 5;
+
+        for (let i = 0; i < daysPassed; i++) {
+          const date = new Date(selectedYear, 0, 1);
+          date.setDate(date.getDate() + i);
+          const data = loadPrayerData(date);
+          tillNowCompleted += data.filter((p) => p).length;
+        }
+
+        const tillNowPercent =
+          tillNowTotal > 0
+            ? Math.round((tillNowCompleted / tillNowTotal) * 100)
+            : 0;
+        document.getElementById("tillNowProgress").textContent =
+          tillNowPercent + "%";
+        document.getElementById("tillNowBar").style.width =
+          tillNowPercent + "%";
+        document.getElementById(
+          "tillNowCount"
+        ).textContent = `${tillNowCompleted} / ${tillNowTotal} prayers`;
+
+        const tillNowSubtitle = document.getElementById("tillNowSubtitle");
+        if (today.getFullYear() > selectedYear) {
+          tillNowSubtitle.textContent = `Full year ${selectedYear}`;
+        } else if (today.getFullYear() === selectedYear) {
+          tillNowSubtitle.textContent = `Since Jan 1, ${selectedYear}`;
+        } else {
+          tillNowSubtitle.textContent = `Future year`;
+        }
+
+        // Monthly stats
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let monthlyCompleted = 0;
+        let monthlyTotal = daysInMonth * 5;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const data = loadPrayerData(date);
+          monthlyCompleted += data.filter((p) => p).length;
+        }
+
+        const monthlyPercent = Math.round(
+          (monthlyCompleted / monthlyTotal) * 100
+        );
+        document.getElementById("monthlyProgress").textContent =
+          monthlyPercent + "%";
+        document.getElementById("monthlyBar").style.width =
+          monthlyPercent + "%";
+        document.getElementById(
+          "monthlyCount"
+        ).textContent = `${monthlyCompleted} / ${monthlyTotal} prayers`;
+
+        // Yearly stats
+        let yearlyCompleted = 0;
+        const daysInYear = isLeapYear(selectedYear) ? 366 : 365;
+        const yearlyTotal = daysInYear * 5;
+
+        for (let month = 0; month < 12; month++) {
+          const daysInMonth = new Date(selectedYear, month + 1, 0).getDate();
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(selectedYear, month, day);
+            const data = loadPrayerData(date);
+            yearlyCompleted += data.filter((p) => p).length;
+          }
+        }
+
+        const yearlyPercent = Math.round((yearlyCompleted / yearlyTotal) * 100);
+        document.getElementById("yearlyProgress").textContent =
+          yearlyPercent + "%";
+        document.getElementById("yearlyBar").style.width = yearlyPercent + "%";
+        document.getElementById(
+          "yearlyCount"
+        ).textContent = `${yearlyCompleted} / ${yearlyTotal} prayers`;
+
+        updateStreak();
+      }
+
+      function updateStreak() {
+        const today = new Date();
+        let streak = 0;
+        let checkDate = new Date(today);
+
+        while (true) {
+          const data = loadPrayerData(checkDate);
+          const completed = data.filter((p) => p).length;
+
+          if (completed === 5) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+
+          if (checkDate.getFullYear() < 2020) break;
+        }
+
+        document.getElementById("streakNumber").textContent =
+          streak + (streak === 1 ? " day" : " days");
+      }
+
+      function updateDateDisplay() {
+        const dateInput = document.getElementById("dateInput");
+
+        // Format date correctly for input (YYYY-MM-DD in local timezone)
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+        const day = String(currentDate.getDate()).padStart(2, "0");
+        const dateStr = `${year}-${month}-${day}`;
+
+        dateInput.value = dateStr;
+
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        document.getElementById("currentDateDisplay").textContent =
+          currentDate.toLocaleDateString("en-US", options);
+      }
+
+      function changeDate(days) {
+        if (!isCurrentYear()) return;
+
+        currentDate.setDate(currentDate.getDate() + days);
+
+        if (currentDate.getFullYear() > selectedYear) {
+          currentDate = new Date(selectedYear, 11, 31);
+        } else if (currentDate.getFullYear() < selectedYear) {
+          currentDate = new Date(selectedYear, 0, 1);
+        }
+
+        updateDateDisplay();
+        renderPrayers();
+        updateStats();
+        renderCalendar();
+      }
+
+      function goToToday() {
+        if (!isCurrentYear()) return;
+
+        const today = new Date();
+        currentDate = new Date(selectedYear, today.getMonth(), today.getDate());
+
+        if (currentDate.getMonth() !== today.getMonth()) {
+          currentDate = new Date(selectedYear, today.getMonth() + 1, 0);
+        }
+
+        calendarMonth = new Date(currentDate);
+        updateDateDisplay();
+        renderPrayers();
+        updateStats();
+        renderCalendar();
+      }
+
+      function handleDateChange() {
+        if (!isCurrentYear()) return;
+
+        const dateInput = document.getElementById("dateInput");
+        const inputValue = dateInput.value; // YYYY-MM-DD format
+
+        if (!inputValue) return;
+
+        const [year, month, day] = inputValue.split("-").map(Number);
+        const selectedDate = new Date(year, month - 1, day);
+
+        if (selectedDate.getFullYear() === selectedYear) {
+          currentDate = selectedDate;
+          calendarMonth = new Date(currentDate);
+          updateDateDisplay();
+          renderPrayers();
+          updateStats();
+          renderCalendar();
+        } else {
+          alert(`Please select a date in ${selectedYear}`);
+          updateDateDisplay();
+        }
+      }
+
+      function changeMonth(direction) {
+        if (!isCurrentYear()) return;
+
+        calendarMonth.setMonth(calendarMonth.getMonth() + direction);
+
+        if (calendarMonth.getFullYear() > selectedYear) {
+          calendarMonth = new Date(selectedYear, 11, 1);
+        } else if (calendarMonth.getFullYear() < selectedYear) {
+          calendarMonth = new Date(selectedYear, 0, 1);
+        }
+
+        renderCalendar();
+      }
+
+      function renderCalendar() {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+
+        document.getElementById(
+          "monthTitle"
+        ).textContent = `${monthNames[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const grid = document.getElementById("calendarGrid");
+        grid.innerHTML = "";
+
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        dayNames.forEach((day) => {
+          const header = document.createElement("div");
+          header.style.fontWeight = "bold";
+          header.style.textAlign = "center";
+          header.style.padding = "3px";
+          header.style.fontSize = "0.75em";
+          header.style.color = "#667eea";
+          header.textContent = day;
+          grid.appendChild(header);
+        });
+
+        for (let i = 0; i < firstDay; i++) {
+          grid.appendChild(document.createElement("div"));
+        }
+
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "calendar-day";
+
+          const data = loadPrayerData(date);
+          const completed = data.filter((p) => p).length;
+
+          if (date.toDateString() === today.toDateString()) {
+            dayDiv.classList.add("today");
+          }
+
+          if (date.toDateString() === currentDate.toDateString()) {
+            dayDiv.classList.add("selected");
+          }
+
+          let bgColor = "#f5f5f5";
+          if (completed === 5) bgColor = "#38ef7d";
+          else if (completed >= 3) bgColor = "#ffd93d";
+          else if (completed > 0) bgColor = "#ffb347";
+
+          dayDiv.style.background = bgColor;
+
+          dayDiv.innerHTML = `
+                    <div class="day-number">${day}</div>
+                    <div class="day-dots">
+                        ${data
+                          .map(
+                            (p) =>
+                              `<div class="dot ${p ? "completed" : ""}"></div>`
+                          )
+                          .join("")}
+                    </div>
+                `;
+
+          if (isCurrentYear()) {
+            dayDiv.onclick = () => {
+              currentDate = new Date(date);
+              updateDateDisplay();
+              renderPrayers();
+              updateStats();
+              renderCalendar();
+            };
+          } else {
+            dayDiv.style.cursor = "default";
+          }
+
+          grid.appendChild(dayDiv);
+        }
+      }
+
+      function changeYear() {
+        selectedYear = parseInt(document.getElementById("yearSelector").value);
+
+        currentDate = new Date(selectedYear, 0, 1);
+        calendarMonth = new Date(currentDate);
+
+        document.getElementById(
+          "mainTitle"
+        ).textContent = `🕌 Prayer Tracker ${selectedYear}`;
+
+        const dateSelector = document.getElementById("dateSelector");
+        const prayerGrid = document.getElementById("prayerGrid");
+        const calendarView = document.getElementById("calendarView");
+        const readOnlyMessage = document.getElementById("readOnlyMessage");
+
+        if (isCurrentYear()) {
+          dateSelector.classList.remove("hidden");
+          prayerGrid.classList.remove("hidden");
+          calendarView.classList.remove("hidden");
+          readOnlyMessage.classList.add("hidden");
+
+          const today = new Date();
+          currentDate = new Date(
+            selectedYear,
+            today.getMonth(),
+            today.getDate()
+          );
+          calendarMonth = new Date(currentDate);
+        } else {
+          dateSelector.classList.add("hidden");
+          prayerGrid.classList.add("hidden");
+          calendarView.classList.add("hidden");
+          readOnlyMessage.classList.remove("hidden");
+        }
+
+        updateDateDisplay();
+        renderPrayers();
+        updateStats();
+
+        if (isCurrentYear()) {
+          renderCalendar();
+        }
+      }
+
+      // Event listeners
+      document
+        .getElementById("yearSelector")
+        .addEventListener("change", changeYear);
+      document
+        .getElementById("dateInput")
+        .addEventListener("change", handleDateChange);
+
+      // Populate year selector dynamically
+      function populateYearSelector() {
+        const yearSelector = document.getElementById("yearSelector");
+        const currentYear = new Date().getFullYear();
+
+        // Show 5 years before and 5 years after current year
+        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+          const option = document.createElement("option");
+          option.value = year;
+          option.textContent = year;
+          yearSelector.appendChild(option);
+        }
+      }
+
+      // Initialize
+      populateYearSelector();
+      const today = new Date();
+      selectedYear = today.getFullYear();
+      currentDate = new Date(selectedYear, today.getMonth(), today.getDate());
+      calendarMonth = new Date(currentDate);
+
+      document.getElementById("yearSelector").value = selectedYear;
+      document.getElementById(
+        "mainTitle"
+      ).textContent = `🕌 Prayer Tracker ${selectedYear}`;
+
+      updateDateDisplay();
+      renderPrayers();
+      updateStats();
+      renderCalendar();
+    </script>
+  </body>
+</html>
