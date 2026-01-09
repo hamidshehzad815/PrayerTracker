@@ -657,7 +657,7 @@
 
       async function loadPrayerData(date) {
         if (!db) await initDB();
-        
+
         return new Promise((resolve) => {
           const key = getStorageKey(date);
           const transaction = db.transaction([STORE_NAME], "readonly");
@@ -681,7 +681,7 @@
 
       async function savePrayerData(date, data) {
         if (!db) await initDB();
-        
+
         return new Promise((resolve) => {
           const key = getStorageKey(date);
           const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -1171,7 +1171,7 @@
       async function init() {
         await initDB();
         await requestPersistentStorage();
-        
+
         populateYearSelector();
         const today = new Date();
         selectedYear = today.getFullYear();
