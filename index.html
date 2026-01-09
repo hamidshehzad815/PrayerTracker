@@ -3,8 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#764ba2" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Prayers" />
     <title>Prayer Tracker</title>
     <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon.png" />
 
     <style>
       * {
@@ -470,6 +478,7 @@
       }
     </style>
     <script>
+      // Service Worker Registration
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
@@ -478,6 +487,14 @@
             .catch((err) => console.log("Service Worker failed:", err));
         });
       }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log("Install prompt ready");
+      });
     </script>
   </head>
   <body>
