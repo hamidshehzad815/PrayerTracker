@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prayer Tracker</title>
     <link rel="manifest" href="manifest.json" />
+
     <style>
       * {
         margin: 0;
@@ -762,21 +763,60 @@
 
       function updateStreak() {
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         let streak = 0;
         let checkDate = new Date(today);
 
-        while (true) {
-          const data = loadPrayerData(checkDate);
-          const completed = data.filter((p) => p).length;
+        // Check today first
+        const todayData = loadPrayerData(checkDate);
+        const todayCompleted = todayData.filter((p) => p).length;
 
-          if (completed === 5) {
-            streak++;
-            checkDate.setDate(checkDate.getDate() - 1);
-          } else {
-            break;
+        // If today has all 5 prayers, count it
+        if (todayCompleted === 5) {
+          streak = 1;
+          // Then check previous days
+          checkDate.setDate(checkDate.getDate() - 1);
+
+          while (true) {
+            const data = loadPrayerData(checkDate);
+            const completed = data.filter((p) => p).length;
+
+            if (completed === 5) {
+              streak++;
+              checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+              break;
+            }
+
+            if (checkDate.getFullYear() < 2020) break;
           }
+        } else {
+          // Today is not complete, check if yesterday was complete
+          checkDate.setDate(checkDate.getDate() - 1);
+          const yesterdayData = loadPrayerData(checkDate);
+          const yesterdayCompleted = yesterdayData.filter((p) => p).length;
 
-          if (checkDate.getFullYear() < 2020) break;
+          if (yesterdayCompleted === 5) {
+            // Yesterday was complete, count from yesterday
+            streak = 1;
+            checkDate.setDate(checkDate.getDate() - 1);
+
+            while (true) {
+              const data = loadPrayerData(checkDate);
+              const completed = data.filter((p) => p).length;
+
+              if (completed === 5) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+              } else {
+                break;
+              }
+
+              if (checkDate.getFullYear() < 2020) break;
+            }
+          }
+          // If yesterday wasn't complete either, streak stays 0
         }
 
         document.getElementById("streakNumber").textContent =
